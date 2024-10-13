@@ -14,17 +14,17 @@ import asyncio
 from threading import Thread
 
 
-Keys = [
-    ["ReactorTotalPower", 0],
-    ["LeftGeneratorPowerIn", 0],
-    ["RightGeneratorPowerIn", 0],
-    ["LeftTransformer_1_Power", 0],
-    ["RightTransformer_2_Power", 0],
-    ["RightTransformer_1_Power", 0],
-    ["LeftTransformer_2_Power", 0],
-    ["ConnectedCard", "Shields", False, 0],
-    ["ConnectedCard", "Generator", "LeftTransformer_1", False],
-]
+Keys = {
+    "reactor": {
+        "energy": 0,
+        "heat": 0,
+        "stress": 0,
+    },
+    "shields": {
+        "strength": 0,
+        "stress": 0,
+    },
+}
 
 
 portNum = 8765
@@ -48,6 +48,7 @@ async def _buildServe():
 
 
 Thread(target=asyncio.run, args=[_buildServe()]).start()
+
 
 while True:
     t.sleep(2)
