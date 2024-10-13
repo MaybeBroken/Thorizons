@@ -26,6 +26,15 @@ Keys = {
     },
 }
 
+Internals = {
+    "stations": {},
+    "clients": [],
+    "systemStress": {
+        "ram": None,
+        "cpu": None,
+    },
+}
+
 
 portNum = 8765
 
@@ -35,8 +44,10 @@ async def _echo(websocket):
         msg = await websocket.recv()
         encoder = js.encoder.JSONEncoder()
         decoder = js.decoder.JSONDecoder()
-        if msg == ...:
-            ...
+        if msg == "requestMasterKeys":
+            await websocket.send(encoder.encode(Keys))
+        else:
+            await websocket.send("unknown")
     except:
         ...
 

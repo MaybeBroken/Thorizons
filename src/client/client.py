@@ -34,15 +34,19 @@ appGuiFrame = None
 root3D = None
 
 
+def decrypt(data): ...
+
+
 async def _send_recieve(data):
     async with websockets.connect(ip) as websocket:
         encoder = js.encoder.JSONEncoder()
+        decoder = js.decoder.JSONDecoder()
         global serverContents, usrName, usrNameMenu, passwdMenu, auth
         if data == ...:
             ...
         else:
-            # await websocket.send(encoder.encode(o=''))
-            ...
+            await websocket.send(encoder.encode(data))
+            decrypt(decoder.decode(await websocket.recv()))
 
 
 def runClient(data):
@@ -67,7 +71,7 @@ class thorizons(ShowBase):
     def setupControl(self):
         self.accept("q", exit)
         self.accept("1", runClient, ["test"])
-        self.accept('n', notify, ['test alert'])
+        self.accept("n", notify, ["test alert"])
 
     def setupGuiInitial(self):
         global appGuiFrame, root3D
