@@ -49,7 +49,7 @@ def runClient(data):
     try:
         asyncio.run(_send_recieve(data))
     except:
-        notify('network error')
+        notify("network error")
         for i in range(5):
             try:
                 asyncio.run(_send_recieve(data))
@@ -59,14 +59,15 @@ def runClient(data):
 
 
 class thorizons(ShowBase):
-    def __init__(self, fStartDirect=True, windowType=None):
-        super().__init__(fStartDirect, windowType)
+    def __init__(self):
+        super().__init__()
         self.setupGuiInitial()
         self.setupControl()
-    
+
     def setupControl(self):
-        self.accept('q', exit)
-        self.accept('1', runClient, extraArgs=['test'])
+        self.accept("q", exit)
+        self.accept("1", runClient, ["test"])
+        self.accept('n', notify, ['test alert'])
 
     def setupGuiInitial(self):
         global appGuiFrame, root3D
