@@ -21,6 +21,8 @@ from direct.showbase.ShowBase import ShowBase
 from direct.stdpy.threading import Thread
 from direct.gui.DirectGui import *
 
+from bin.colors import _dict as Color
+
 devMode = True
 
 serverContents = []
@@ -44,7 +46,7 @@ async def _send_recieve(data):
         decoder = js.decoder.JSONDecoder()
         global serverContents, usrName, usrNameMenu, passwdMenu, auth
         if data == "requestMasterKeys":
-            await websocket.send(encoder.encode(data))
+            await websocket.send(data)
             decrypt(decoder.decode(await websocket.recv()))
         else:
             await websocket.send(encoder.encode(data))
@@ -97,20 +99,38 @@ def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
 class thorizons(ShowBase):
     def __init__(self):
         super().__init__()
-        self.setupGuiInitial()
+        self.setupGuiFrames()
         self.setupControl()
+        self.setup3D()
+        self.loginScreen()
 
     def setupControl(self):
         self.accept("q", exit)
         self.accept("n", notify, ["test alert"])
         self.accept("s", runClient, ["requestMasterKeys"])
 
-    def setupGuiInitial(self):
+    def setupGuiFrames(self):
         global appGuiFrame, root3D
         self.root3D = NodePath(self.render)
-        self.guiFrame = DirectFrame(parent=self.aspect2d)
+        self.guiFrame = DirectFrame(parent=self.render2d)
         appGuiFrame = self.guiFrame
         root3D = self.root3D
+
+    def loginScreen(self):
+        self.background = DirectFrame(
+            parent=self.guiFrame,
+            frameColor=(80 / 255, 90 / 255, 200 / 255, 1),
+            frameSize=(-1, 1, -1, 1),
+        )
+
+    def opsScreen(self): ...
+    def flightScreen(self): ...
+    def XOScreen(self): ...
+    def commScreen(self): ...
+    def weaponsScreen(self): ...
+    def viewScreen(self): ...
+
+    def setup3D(self): ...
 
 
 thorizons().run()
