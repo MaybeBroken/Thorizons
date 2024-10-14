@@ -49,7 +49,7 @@ async def _echo(websocket):
         else:
             await websocket.send("unknown")
     except:
-        ...
+        print('client disconnected')
 
 
 async def _buildServe():

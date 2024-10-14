@@ -34,7 +34,8 @@ appGuiFrame = None
 root3D = None
 
 
-def decrypt(data): ...
+def decrypt(data):
+    print(data)
 
 
 async def _send_recieve(data):
@@ -42,8 +43,9 @@ async def _send_recieve(data):
         encoder = js.encoder.JSONEncoder()
         decoder = js.decoder.JSONDecoder()
         global serverContents, usrName, usrNameMenu, passwdMenu, auth
-        if data == ...:
-            ...
+        if data == "requestMasterKeys":
+            await websocket.send(encoder.encode(data))
+            decrypt(decoder.decode(await websocket.recv()))
         else:
             await websocket.send(encoder.encode(data))
             decrypt(decoder.decode(await websocket.recv()))
@@ -60,25 +62,6 @@ def runClient(data):
                 break
             except:
                 ...
-
-
-class thorizons(ShowBase):
-    def __init__(self):
-        super().__init__()
-        self.setupGuiInitial()
-        self.setupControl()
-
-    def setupControl(self):
-        self.accept("q", exit)
-        self.accept("1", runClient, ["test"])
-        self.accept("n", notify, ["test alert"])
-
-    def setupGuiInitial(self):
-        global appGuiFrame, root3D
-        self.root3D = NodePath(self.render)
-        self.guiFrame = DirectFrame(parent=self.aspect2d)
-        appGuiFrame = self.guiFrame
-        root3D = self.root3D
 
 
 def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
@@ -109,6 +92,25 @@ def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
         pad=[0.02, 0.02, 0.02, 0.02],
     )
     return newMessage
+
+
+class thorizons(ShowBase):
+    def __init__(self):
+        super().__init__()
+        self.setupGuiInitial()
+        self.setupControl()
+
+    def setupControl(self):
+        self.accept("q", exit)
+        self.accept("n", notify, ["test alert"])
+        self.accept("s", runClient, ["requestMasterKeys"])
+
+    def setupGuiInitial(self):
+        global appGuiFrame, root3D
+        self.root3D = NodePath(self.render)
+        self.guiFrame = DirectFrame(parent=self.aspect2d)
+        appGuiFrame = self.guiFrame
+        root3D = self.root3D
 
 
 thorizons().run()
