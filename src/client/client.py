@@ -25,6 +25,15 @@ from bin.colors import _dict as Color
 
 devMode = True
 
+
+def ColToScalar(val):
+    return val / 255
+
+
+def RgbToScalar(r, g, b, a) -> tuple[4]:
+    return (ColToScalar(r), ColToScalar(g), ColToScalar(b), a)
+
+
 serverContents = []
 portNum = 8765
 if not devMode:
@@ -119,7 +128,7 @@ class thorizons(ShowBase):
     def loginScreen(self):
         self.background = DirectFrame(
             parent=self.guiFrame,
-            frameColor=(80 / 255, 90 / 255, 200 / 255, 1),
+            frameColor=(RgbToScalar(80, 90, 180, 1)),
             frameSize=(-1, 1, -1, 1),
         )
 

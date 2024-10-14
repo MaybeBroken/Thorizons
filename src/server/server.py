@@ -14,7 +14,6 @@ import asyncio
 from threading import Thread
 
 
-
 Keys = {
     "reactor": {
         "energy": 0,
@@ -24,6 +23,23 @@ Keys = {
     "shields": {
         "strength": 0,
         "stress": 0,
+        "integrity": 0,
+    },
+    "weapons": {
+        "lasers": {
+            "stress": 0,
+            "charge": 0,
+            "heat": 0,
+        },
+        "torpedos": {
+            "stress": 0,
+            "charge": 0,
+            "heat": 0,
+            "ammo": {
+                "large": 0,
+                "small": 0,
+            },
+        },
     },
 }
 
@@ -50,7 +66,7 @@ async def _echo(websocket):
         else:
             await websocket.send("unknown")
     except:
-        print('client disconnected')
+        print("client disconnected")
 
 
 async def _buildServe():
