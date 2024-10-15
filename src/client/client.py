@@ -10,20 +10,41 @@ try:
     import json as js
 except:
     system(f"python3 -m pip install json")
+try:
+    from screeninfo import get_monitors
+except:
+    system(f"python3 -m pip install screeninfo")
 import asyncio
 
 try:
     from panda3d.core import *
 except:
     system(f"python3 -m pip install panda3d")
-from panda3d.core import TextNode, loadPrcFile, NodePath
+from panda3d.core import TextNode, loadPrcFile, NodePath, WindowProperties
 from direct.showbase.ShowBase import ShowBase
 from direct.stdpy.threading import Thread
 from direct.gui.DirectGui import *
 
 from bin.colors import _dict as Color
 
+
+monitor = get_monitors()[0]
+screenX = monitor.width
+screenY = monitor.height
+aspectX = screenY / screenX
+aspectY = screenX / screenY
 devMode = True
+serverContents = []
+portNum = 8765
+root3D = None
+appGuiFrame = None
+
+loadPrcFile("bin/settings.prc")
+
+if not devMode:
+    ip = "wss://maybebroken.loca.lt"
+else:
+    ip = "ws://localhost:8765"
 
 
 def ColToScalar(val):
@@ -32,17 +53,6 @@ def ColToScalar(val):
 
 def RgbToScalar(r, g, b, a) -> tuple[4]:
     return (ColToScalar(r), ColToScalar(g), ColToScalar(b), a)
-
-
-serverContents = []
-portNum = 8765
-if not devMode:
-    ip = "wss://maybebroken.loca.lt"
-else:
-    ip = "ws://localhost:8765"
-
-appGuiFrame = None
-root3D = None
 
 
 def decrypt(data):
@@ -108,15 +118,29 @@ def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
 class thorizons(ShowBase):
     def __init__(self):
         super().__init__()
+        self.disableMouse()
         self.setupGuiFrames()
         self.setupControl()
         self.setup3D()
         self.loginScreen()
+        # print(self.getScreenSize())
+
+    def getScreenSize(self):
+        props = WindowProperties()
+        return props.getSize()
+
+    def setScreenSize(self, w, h):
+        props = WindowProperties()
+        props.setSize(w, h)
+        self.win.requestProperties(props)
 
     def setupControl(self):
         self.accept("q", exit)
         self.accept("n", notify, ["test alert"])
         self.accept("s", runClient, ["requestMasterKeys"])
+    
+    def updateCursorItemsPos(self, task):
+        return task.cont
 
     def setupGuiFrames(self):
         global appGuiFrame, root3D
@@ -124,21 +148,24 @@ class thorizons(ShowBase):
         self.guiFrame = DirectFrame(parent=self.render2d)
         appGuiFrame = self.guiFrame
         root3D = self.root3D
+        self.backgroundObjNode = NodePath("backgroundModel")
+        self.backgroundObjNode.reparentTo(self.render)
+        self.backgroundObj1 = self.loader.loadModel("data/models/skybox/stars.egg")
+        self.backgroundObj1.reparentTo(self.backgroundObjNode)
+        self.backgroundObj1.setScale(50)
+        self.backgroundObj2 = self.loader.loadModel("data/models/skybox/stars.egg")
+        self.backgroundObj2.reparentTo(self.backgroundObjNode)
+        self.backgroundObj2.setScale(50)
+        self.backgroundObj2.setR(180)
+        self.taskMgr.add(self.updateCursorItemsPos)
 
-    def loginScreen(self):
-        self.background = DirectFrame(
-            parent=self.guiFrame,
-            frameColor=(RgbToScalar(80, 90, 180, 1)),
-            frameSize=(-1, 1, -1, 1),
-        )
-
+    def loginScreen(self): ...
     def opsScreen(self): ...
     def flightScreen(self): ...
     def XOScreen(self): ...
     def commScreen(self): ...
     def weaponsScreen(self): ...
     def viewScreen(self): ...
-
     def setup3D(self): ...
 
 
