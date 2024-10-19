@@ -20,7 +20,13 @@ try:
     from panda3d.core import *
 except:
     system(f"python3 -m pip install panda3d")
-from panda3d.core import TextNode, loadPrcFile, NodePath, WindowProperties
+from panda3d.core import (
+    TextNode,
+    loadPrcFile,
+    NodePath,
+    WindowProperties,
+    ConfigVariableString,
+)
 from direct.showbase.ShowBase import ShowBase
 from direct.stdpy.threading import Thread
 from direct.gui.DirectGui import *
@@ -40,6 +46,16 @@ root3D = None
 appGuiFrame = None
 
 loadPrcFile("bin/settings.prc")
+
+monitor = get_monitors()
+
+
+ConfigVariableString("win-size", str(screenX) + " " + str(screenY)).setValue(
+    str(screenX) + " " + str(screenY)
+)
+ConfigVariableString("fullscreen", "false").setValue("false")
+ConfigVariableString("undecorated", "true").setValue("true")
+
 
 if not devMode:
     ip = "wss://maybebroken.loca.lt"
@@ -138,9 +154,87 @@ class thorizons(ShowBase):
         self.accept("q", exit)
         self.accept("n", notify, ["test alert"])
         self.accept("s", runClient, ["requestMasterKeys"])
-    
-    def updateCursorItemsPos(self, task):
-        return task.cont
+
+    def update(self, task):
+        result = task.cont
+        dt = globalClock.getDt()  # type: ignore
+
+        # x_movement = 0
+        # y_movement = 0
+        # z_movement = 0
+
+        # if self.keyMap["forward"]:
+        #     x_movement -= dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        #     y_movement += dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        # if self.keyMap["backward"]:
+        #     x_movement += dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        #     y_movement -= dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        # if self.keyMap["left"]:
+        #     x_movement -= dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        #     y_movement -= dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        # if self.keyMap["right"]:
+        #     x_movement += dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        #     y_movement += dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        # if self.keyMap["up"]:
+        #     z_movement += dt * playerMoveSpeed
+        # if self.keyMap["down"]:
+        #     z_movement -= dt * playerMoveSpeed
+
+        # self.camera.setPos(
+        #     self.camera.getX() + x_movement,
+        #     self.camera.getY() + y_movement,
+        #     self.camera.getZ() + z_movement,
+        # )
+        # Wvars.camX = self.camera.getX()
+        # Wvars.camY = self.camera.getY()
+        # Wvars.camZ = self.camera.getZ()
+
+        md = self.win.getPointer(0)
+        mouseX = md.getX()
+        mouseY = md.getY()
+
+        if int(monitor[0].width / 2) - mouseX >= int(monitor[0].width / 4):
+            self.win.movePointer(0, x=int(monitor[0].width / 2), y=int(mouseY))
+            self.lastMouseX = int(monitor[0].width / 2)
+        elif int(monitor[0].width / 2) - mouseX <= -int(monitor[0].width / 4):
+            self.win.movePointer(0, x=int(monitor[0].width / 2), y=int(mouseY))
+            self.lastMouseX = int(monitor[0].width / 2)
+        elif int(monitor[0].height / 2) - mouseY >= int(monitor[0].height / 4):
+            self.win.movePointer(0, x=int(mouseX), y=int(monitor[0].height / 2))
+            self.lastMouseY = int(monitor[0].height / 2)
+        elif int(monitor[0].height / 2) - mouseY <= -int(monitor[0].height / 4):
+            self.win.movePointer(0, x=int(mouseX), y=int(monitor[0].height / 2))
+            self.lastMouseY = int(monitor[0].height / 2)
+
+        else:
+            mouseChangeX = mouseX - self.lastMouseX
+            mouseChangeY = mouseY - self.lastMouseY
+
+            self.cameraSwingFactor = Wvars.swingSpeed / 10
+
+            currentH = self.camera.getH()
+            currentP = self.camera.getP()
+            currentR = self.camera.getR()
+
+            Wvars.camH = currentH
+            Wvars.camP = currentP
+            Wvars.camR = currentR
+
+            self.camera.setHpr(
+                currentH - mouseChangeX * dt * self.cameraSwingFactor,
+                min(
+                    90, max(-90, currentP - mouseChangeY * dt * self.cameraSwingFactor)
+                ),
+                0,
+            )
+
+            self.lastMouseX = mouseX
+            self.lastMouseY = mouseY
+        # if Wvars.inInventory == True:
+        #     md = self.win.getPointer(0)
+        #     self.lastMouseX = md.getX()
+        #     self.lastMouseY = md.getY()
+        return result
 
     def setupGuiFrames(self):
         global appGuiFrame, root3D
