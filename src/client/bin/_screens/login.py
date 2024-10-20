@@ -1,7 +1,8 @@
-from panda3d.core import NodePath
+from panda3d.core import NodePath, loadPrcFile
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.DirectGui import DirectButton, DirectEntry, OnscreenText
 
+loadPrcFile("src/client/bin/settings.prc")
 
 def scr() -> NodePath:
     frame = NodePath('frame')
