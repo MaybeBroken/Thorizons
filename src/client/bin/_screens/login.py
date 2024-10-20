@@ -1,17 +1,26 @@
-from panda3d.core import (
-    TextNode,
-    loadPrcFile,
-    NodePath,
-    WindowProperties,
-    ConfigVariableString,
-)
+from panda3d.core import NodePath
 from direct.showbase.ShowBase import ShowBase
-from direct.stdpy.threading import Thread
-from direct.gui.DirectGui import *
+from direct.gui.DirectGui import DirectButton, DirectEntry, OnscreenText
 
 
-def scr(
-    render2d: None = None,
-    aspect2d: None = None,
-) -> NodePath:
-    frame = DirectFrame(parent=render2d)
+def scr() -> NodePath:
+    frame = NodePath('frame')
+
+    b = DirectButton(parent=frame, text="Log-In", scale=0.1, pos=(-1, 0, -0.5))
+
+    usr_entry = DirectEntry(parent=frame, scale=0.05, pos=(-0.5, 0, 0.001), numLines=1, width=10)
+    usrnm = OnscreenText(parent=frame, scale=0.1, pos=(-1, 0, -0.1), text=("Username"))
+    pswd = OnscreenText(parent=frame, scale=0.1, pos=(-1, -0.2, -0.1), text=("Password"))
+    pswd_entry = DirectEntry(parent=frame, scale=0.05, pos=(-0.5, 0, -0.2), numLines=1, width=10, obscured=True)
+
+    return frame
+
+
+class Outline(ShowBase):
+    def __init__(self):
+        super().__init__()
+        scr().reparentTo(self.aspect2d)
+
+
+
+Outline().run()
