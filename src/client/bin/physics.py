@@ -28,7 +28,7 @@ class physicsMgr:
         self.registeredObjects.append(
             [object, name, positionalVelocity, rotationalVelocity]
         )
- 
+
     def registerColliderPlane(
         self,
         object,
