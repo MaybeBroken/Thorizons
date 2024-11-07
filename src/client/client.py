@@ -20,17 +20,23 @@ try:
     from panda3d.core import *
 except:
     system(f"python3 -m pip install panda3d")
-from panda3d.core import TextNode, loadPrcFile, NodePath, WindowProperties
+from panda3d.core import (
+    TextNode,
+    loadPrcFile,
+    NodePath,
+    WindowProperties,
+    ConfigVariableString,
+)
 from direct.showbase.ShowBase import ShowBase
 from direct.stdpy.threading import Thread
 from direct.gui.DirectGui import *
 
 from bin.colors import _dict as Color
+from bin.physics import physicsMgr as p_Mgr
 
-
-monitor = get_monitors()[0]
-screenX = monitor.width
-screenY = monitor.height
+monitor = get_monitors()
+screenX = monitor[0].width
+screenY = monitor[0].height
 aspectX = screenY / screenX
 aspectY = screenX / screenY
 devMode = True
@@ -40,6 +46,10 @@ root3D = None
 appGuiFrame = None
 
 loadPrcFile("bin/settings.prc")
+ConfigVariableString(
+    "win-size", str(monitor[0].width) + " " + str(monitor[0].height)
+).setValue(str(monitor[0].width) + " " + str(monitor[0].height))
+
 
 if not devMode:
     ip = "wss://maybebroken.loca.lt"
@@ -118,6 +128,7 @@ def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
 class thorizons(ShowBase):
     def __init__(self):
         super().__init__()
+        p_Mgr().enable()
         self.disableMouse()
         self.setupGuiFrames()
         self.setupControl()
@@ -138,8 +149,28 @@ class thorizons(ShowBase):
         self.accept("q", exit)
         self.accept("n", notify, ["test alert"])
         self.accept("s", runClient, ["requestMasterKeys"])
-    
+
     def updateCursorItemsPos(self, task):
+        dt = globalClock.getDt()  # type: ignore
+        md = self.win.getPointer(0)
+        mouseX = md.getX()
+        mouseY = md.getY()
+
+        mouseChangeX = mouseX - self.lastMouseX
+        mouseChangeY = mouseY - self.lastMouseY
+
+        currentH = self.camera.getH()
+        currentP = self.camera.getP()
+        currentR = self.camera.getR()
+
+        self.camera.setHpr(
+            currentH - mouseChangeX * dt,
+            min(90, max(-90, currentP - mouseChangeY * dt)),
+            0,
+        )
+
+        self.lastMouseX = mouseX
+        self.lastMouseY = mouseY
         return task.cont
 
     def setupGuiFrames(self):
@@ -157,6 +188,8 @@ class thorizons(ShowBase):
         self.backgroundObj2.reparentTo(self.backgroundObjNode)
         self.backgroundObj2.setScale(50)
         self.backgroundObj2.setR(180)
+        self.lastMouseX = 0
+        self.lastMouseY = 0
         self.taskMgr.add(self.updateCursorItemsPos)
 
     def loginScreen(self): ...
