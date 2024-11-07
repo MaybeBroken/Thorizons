@@ -32,7 +32,7 @@ from direct.stdpy.threading import Thread
 from direct.gui.DirectGui import *
 
 from bin.colors import _dict as Color
-from bin.physics import physicsMgr as p_Mgr
+from bin.physics import physicsMgr
 
 monitor = get_monitors()
 screenX = monitor[0].width
@@ -49,6 +49,16 @@ loadPrcFile("bin/settings.prc")
 ConfigVariableString(
     "win-size", str(monitor[0].width) + " " + str(monitor[0].height)
 ).setValue(str(monitor[0].width) + " " + str(monitor[0].height))
+
+
+monitor = get_monitors()
+
+
+ConfigVariableString("win-size", str(screenX) + " " + str(screenY)).setValue(
+    str(screenX) + " " + str(screenY)
+)
+ConfigVariableString("fullscreen", "false").setValue("false")
+ConfigVariableString("undecorated", "true").setValue("true")
 
 
 if not devMode:
@@ -128,7 +138,7 @@ def notify(message: str, pos=(0.8, 0, -0.5), scale=0.75):
 class thorizons(ShowBase):
     def __init__(self):
         super().__init__()
-        p_Mgr().enable()
+        physicsMgr.enable(physicsMgr, gravity=(0, 0, 0))
         self.disableMouse()
         self.setupGuiFrames()
         self.setupControl()
@@ -147,15 +157,63 @@ class thorizons(ShowBase):
 
     def setupControl(self):
         self.accept("q", exit)
-        self.accept("n", notify, ["test alert"])
+        self.accept("n", notify, ["test alert long message idk"])
         self.accept("s", runClient, ["requestMasterKeys"])
 
-    def updateCursorItemsPos(self, task):
+    def update(self, task):
+        physicsMgr.updateWorldPositions(physicsMgr)
+        result = task.cont
         dt = globalClock.getDt()  # type: ignore
+        self.cameraSwingFactor = 0.6
+
+        # x_movement = 0
+        # y_movement = 0
+        # z_movement = 0
+
+        # if self.keyMap["forward"]:
+        #     x_movement -= dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        #     y_movement += dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        # if self.keyMap["backward"]:
+        #     x_movement += dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        #     y_movement -= dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        # if self.keyMap["left"]:
+        #     x_movement -= dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        #     y_movement -= dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        # if self.keyMap["right"]:
+        #     x_movement += dt * playerMoveSpeed * cos(degToRad(self.camera.getH()))
+        #     y_movement += dt * playerMoveSpeed * sin(degToRad(self.camera.getH()))
+        # if self.keyMap["up"]:
+        #     z_movement += dt * playerMoveSpeed
+        # if self.keyMap["down"]:
+        #     z_movement -= dt * playerMoveSpeed
+
+        # self.camera.setPos(
+        #     self.camera.getX() + x_movement,
+        #     self.camera.getY() + y_movement,
+        #     self.camera.getZ() + z_movement,
+        # )
+        # Wvars.camX = self.camera.getX()
+        # Wvars.camY = self.camera.getY()
+        # Wvars.camZ = self.camera.getZ()
+
         md = self.win.getPointer(0)
         mouseX = md.getX()
         mouseY = md.getY()
 
+        # if int(monitor[0].width / 2) - mouseX >= int(monitor[0].width / 4):
+        #     self.win.movePointer(0, x=int(monitor[0].width / 2), y=int(mouseY))
+        #     self.lastMouseX = int(monitor[0].width / 2)
+        # elif int(monitor[0].width / 2) - mouseX <= -int(monitor[0].width / 4):
+        #     self.win.movePointer(0, x=int(monitor[0].width / 2), y=int(mouseY))
+        #     self.lastMouseX = int(monitor[0].width / 2)
+        # elif int(monitor[0].height / 2) - mouseY >= int(monitor[0].height / 4):
+        #     self.win.movePointer(0, x=int(mouseX), y=int(monitor[0].height / 2))
+        #     self.lastMouseY = int(monitor[0].height / 2)
+        # elif int(monitor[0].height / 2) - mouseY <= -int(monitor[0].height / 4):
+        #     self.win.movePointer(0, x=int(mouseX), y=int(monitor[0].height / 2))
+        #     self.lastMouseY = int(monitor[0].height / 2)
+
+        # else:
         mouseChangeX = mouseX - self.lastMouseX
         mouseChangeY = mouseY - self.lastMouseY
 
@@ -164,19 +222,25 @@ class thorizons(ShowBase):
         currentR = self.camera.getR()
 
         self.camera.setHpr(
-            currentH - mouseChangeX * dt,
-            min(90, max(-90, currentP - mouseChangeY * dt)),
+            currentH - mouseChangeX * dt * self.cameraSwingFactor,
+            min(
+                45, max(-45, currentP - mouseChangeY * dt * self.cameraSwingFactor)
+            ),
             0,
         )
 
         self.lastMouseX = mouseX
         self.lastMouseY = mouseY
-        return task.cont
+        # if Wvars.inInventory == True:
+        #     md = self.win.getPointer(0)
+        #     self.lastMouseX = md.getX()
+        #     self.lastMouseY = md.getY()
+        return result
 
     def setupGuiFrames(self):
         global appGuiFrame, root3D
         self.root3D = NodePath(self.render)
-        self.guiFrame = DirectFrame(parent=self.render2d)
+        self.guiFrame = DirectFrame(parent=self.aspect2d)
         appGuiFrame = self.guiFrame
         root3D = self.root3D
         self.backgroundObjNode = NodePath("backgroundModel")
@@ -188,9 +252,16 @@ class thorizons(ShowBase):
         self.backgroundObj2.reparentTo(self.backgroundObjNode)
         self.backgroundObj2.setScale(50)
         self.backgroundObj2.setR(180)
-        self.lastMouseX = 0
-        self.lastMouseY = 0
-        self.taskMgr.add(self.updateCursorItemsPos)
+        self.lastMouseX = self.win.getPointer(0).getX()
+        self.lastMouseY = self.win.getPointer(0).getX()
+        self.hideCursor(False)
+        self.taskMgr.add(self.update)
+
+    def hideCursor(self, boolVar):
+        properties = WindowProperties()
+        properties.setCursorHidden(boolVar)
+        properties.setMouseMode(WindowProperties.M_relative)
+        self.win.requestProperties(properties)
 
     def loginScreen(self): ...
     def opsScreen(self): ...
@@ -199,7 +270,7 @@ class thorizons(ShowBase):
     def commScreen(self): ...
     def weaponsScreen(self): ...
     def viewScreen(self): ...
-    def setup3D(self): ...
 
+    def setup3D(self): ...
 
 thorizons().run()

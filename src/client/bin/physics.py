@@ -1,4 +1,4 @@
-import direct.stdpy.threading as thread
+from direct.stdpy.threading import Thread
 
 
 class physicsMgr:
@@ -243,4 +243,3 @@ class physicsMgr:
                     node[0].getPos()[1] + node[2][1],
                     node[0].getPos()[2] + node[2][2],
                 )
-                node[0]
