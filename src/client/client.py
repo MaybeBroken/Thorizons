@@ -33,6 +33,8 @@ from direct.gui.DirectGui import *
 
 from bin.colors import _dict as Color
 from bin.physics import physicsMgr
+from bin.gen import generation, build
+
 
 monitor = get_monitors()
 screenX = monitor[0].width
@@ -223,9 +225,7 @@ class thorizons(ShowBase):
 
         self.camera.setHpr(
             currentH - mouseChangeX * dt * self.cameraSwingFactor,
-            min(
-                45, max(-45, currentP - mouseChangeY * dt * self.cameraSwingFactor)
-            ),
+            min(45, max(-45, currentP - mouseChangeY * dt * self.cameraSwingFactor)),
             0,
         )
 
@@ -271,6 +271,9 @@ class thorizons(ShowBase):
     def weaponsScreen(self): ...
     def viewScreen(self): ...
 
-    def setup3D(self): ...
+    def setup3D(self):
+        world: dict = generation
+        build(world).reparentTo(self.render)
+
 
 thorizons().run()
